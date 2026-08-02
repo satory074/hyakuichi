@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="77" fill="#1a1a2e"/>
+  <rect x="51" y="51" width="410" height="410" rx="41" fill="none" stroke="#c9a86c" stroke-width="10"/>
+  <text x="256" y="218" text-anchor="middle" font-family="serif" font-size="179" fill="#c9a86c" font-weight="bold">百一</text>
+  <text x="256" y="368" text-anchor="middle" font-family="serif" font-size="63" fill="#a89b8c">百人一首</text>
+</svg>

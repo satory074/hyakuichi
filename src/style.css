@@ -1,0 +1,1100 @@
+/* ============================================
+   百一 - 百人一首暗記 PWA
+   和風ダークテーマ
+   ============================================ */
+
+:root {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-card: #0f3460;
+  --gold: #c9a86c;
+  --gold-light: #e8d5a3;
+  --vermillion: #e94560;
+  --green: #4ecca3;
+  --text-primary: #eee8d5;
+  --text-secondary: #a89b8c;
+  --text-muted: #6b6156;
+  --border: #2a2a4a;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --nav-height: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Noto Serif JP', serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input, select {
+  font-family: inherit;
+}
+
+/* ============================================
+   App Layout
+   ============================================ */
+
+#app {
+  padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 8px);
+  min-height: 100dvh;
+}
+
+.page {
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.page-header {
+  padding: 8px 0 16px;
+}
+
+.page-header h1 {
+  font-size: 1.5rem;
+  color: var(--gold);
+}
+
+/* ============================================
+   Bottom Navigation
+   ============================================ */
+
+#bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--nav-height) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+}
+
+#bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 12px;
+  min-width: 64px;
+  min-height: 48px;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+#bottom-nav a.active {
+  color: var(--gold);
+}
+
+.nav-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.nav-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   Home Page
+   ============================================ */
+
+.app-title {
+  font-size: 2.5rem;
+  color: var(--gold);
+  text-align: center;
+  letter-spacing: 0.15em;
+}
+
+.app-subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.section-title {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  letter-spacing: 0.1em;
+}
+
+/* Today's Poem */
+.today-poem {
+  margin: 24px 0;
+}
+
+.today-card {
+  display: block;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+}
+
+.today-number {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.today-kami {
+  display: block;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+}
+
+.today-poet {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--gold);
+  margin-top: 12px;
+}
+
+/* Mode Grid */
+.mode-cards {
+  margin: 24px 0;
+}
+
+.mode-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 8px;
+  text-align: center;
+  min-height: 48px;
+  transition: border-color 0.2s;
+}
+
+.mode-card:active {
+  border-color: var(--gold);
+}
+
+.mode-icon {
+  font-size: 1.5rem;
+}
+
+.mode-name {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.mode-desc {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+/* Stats */
+.stats-summary {
+  display: flex;
+  justify-content: space-around;
+  padding: 16px 0;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-number {
+  display: block;
+  font-size: 1.8rem;
+  color: var(--gold);
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   Progress Bar
+   ============================================ */
+
+.progress-container {
+  margin: 16px 0;
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+}
+
+.progress-mastered {
+  background: var(--green);
+  transition: width 0.3s;
+}
+
+.progress-learning {
+  background: var(--gold);
+  transition: width 0.3s;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.7rem;
+}
+
+.label-mastered { color: var(--green); }
+.label-learning { color: var(--gold); }
+.label-new { color: var(--text-muted); }
+
+/* ============================================
+   Browse Page
+   ============================================ */
+
+.browse-filters {
+  margin-bottom: 16px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  margin-bottom: 12px;
+}
+
+.search-input:focus {
+  border-color: var(--gold);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.filter-row {
+  margin-bottom: 8px;
+}
+
+.filter-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  min-height: 32px;
+  transition: all 0.2s;
+}
+
+.chip.active {
+  background: var(--gold);
+  color: var(--bg-primary);
+  border-color: var(--gold);
+}
+
+.browse-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.poem-list {
+  list-style: none;
+}
+
+.poem-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  min-height: 48px;
+}
+
+.poem-number {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  min-width: 28px;
+  text-align: right;
+}
+
+.poem-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.poem-kami {
+  display: block;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.poem-poet {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.poem-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-new .poem-status-dot { background: var(--text-muted); }
+.status-learning .poem-status-dot { background: var(--gold); }
+.status-mastered .poem-status-dot { background: var(--green); }
+
+/* ============================================
+   Detail Page
+   ============================================ */
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back-link {
+  font-size: 0.85rem;
+  color: var(--gold);
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.poet-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.poet-name {
+  display: block;
+  font-size: 1.2rem;
+  color: var(--gold);
+}
+
+.poet-kana {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* Flip Card */
+.flip-card {
+  perspective: 1000px;
+  cursor: pointer;
+  margin: 16px 0;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+.card-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.15em;
+  margin-bottom: 12px;
+}
+
+.card-poem {
+  font-size: 1.3rem;
+  line-height: 2;
+  color: var(--text-primary);
+}
+
+.card-hint {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 16px;
+}
+
+.kimariji {
+  color: var(--vermillion);
+  font-weight: 700;
+}
+
+.kimariji-note {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 12px;
+}
+
+/* Detail sections */
+.detail-kana {
+  margin: 20px 0;
+}
+
+.kana-row {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.kana-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.kana-text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.detail-kimariji {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  text-align: center;
+  margin: 16px 0;
+}
+
+.kimariji-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.kimariji-value {
+  font-size: 1.3rem;
+  color: var(--vermillion);
+  font-weight: 700;
+}
+
+/* Status Control */
+.status-control {
+  margin: 20px 0;
+}
+
+.status-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.status-btn {
+  flex: 1;
+  padding: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  min-height: 48px;
+  transition: all 0.2s;
+}
+
+.status-btn.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.status-btn[data-status="mastered"].active {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.status-btn[data-status="new"].active {
+  border-color: var(--text-muted);
+  color: var(--text-secondary);
+}
+
+/* Detail Nav */
+.detail-nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 0;
+}
+
+.nav-prev, .nav-next {
+  color: var(--gold);
+  font-size: 0.85rem;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+}
+
+/* ============================================
+   Quiz Page
+   ============================================ */
+
+/* Quiz Progress */
+.quiz-progress {
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.quiz-progress-bar {
+  height: 4px;
+  background: var(--bg-secondary);
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.quiz-progress-fill {
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.3s;
+}
+
+/* Question */
+.quiz-question {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.quiz-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.15em;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.quiz-text {
+  font-size: 1.3rem;
+  line-height: 2;
+}
+
+/* Choices */
+.quiz-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.choice-btn {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  text-align: left;
+  min-height: 48px;
+  transition: all 0.2s;
+}
+
+.choice-btn:active {
+  border-color: var(--gold);
+}
+
+.choice-btn.correct {
+  background: rgba(78, 204, 163, 0.15);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.choice-btn.incorrect {
+  background: rgba(233, 69, 96, 0.15);
+  border-color: var(--vermillion);
+  color: var(--vermillion);
+}
+
+.choice-btn:disabled {
+  opacity: 0.7;
+}
+
+/* Recall Mode */
+.recall-section {
+  text-align: center;
+}
+
+.btn-reveal {
+  padding: 14px 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  color: var(--gold);
+  font-size: 0.9rem;
+  min-height: 48px;
+}
+
+.recall-answer {
+  padding: 24px 0;
+}
+
+.recall-text {
+  font-size: 1.2rem;
+  line-height: 2;
+  margin-bottom: 8px;
+}
+
+.recall-poet {
+  font-size: 0.8rem;
+  color: var(--gold);
+  margin-bottom: 24px;
+}
+
+.recall-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-knew {
+  flex: 1;
+  padding: 14px;
+  background: rgba(78, 204, 163, 0.15);
+  border: 1px solid var(--green);
+  border-radius: var(--radius-sm);
+  color: var(--green);
+  font-size: 0.9rem;
+  min-height: 48px;
+}
+
+.btn-forgot {
+  flex: 1;
+  padding: 14px;
+  background: rgba(233, 69, 96, 0.15);
+  border: 1px solid var(--vermillion);
+  border-radius: var(--radius-sm);
+  color: var(--vermillion);
+  font-size: 0.9rem;
+  min-height: 48px;
+}
+
+/* Quiz Setup */
+.quiz-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group label:first-child {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  min-height: 48px;
+  cursor: pointer;
+}
+
+.radio-label input[type="radio"] {
+  accent-color: var(--gold);
+  width: 18px;
+  height: 18px;
+}
+
+.count-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.count-btn {
+  flex: 1;
+  padding: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  min-height: 48px;
+  transition: all 0.2s;
+}
+
+.count-btn.active {
+  background: var(--gold);
+  color: var(--bg-primary);
+  border-color: var(--gold);
+}
+
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: var(--gold);
+  color: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 700;
+  min-height: 48px;
+  letter-spacing: 0.1em;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:active {
+  opacity: 0.8;
+}
+
+.btn-secondary {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  min-height: 48px;
+  text-align: center;
+}
+
+.btn-start {
+  margin-top: 8px;
+}
+
+/* Quiz Empty */
+.quiz-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--text-secondary);
+}
+
+.quiz-empty p {
+  margin-bottom: 12px;
+}
+
+/* Results */
+.results-summary {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.results-score {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+}
+
+.score-number {
+  font-size: 3rem;
+  color: var(--gold);
+}
+
+.score-divider {
+  font-size: 1.5rem;
+  color: var(--text-muted);
+}
+
+.score-total {
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.results-percentage {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.results-time {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.results-list {
+  list-style: none;
+  margin: 16px 0;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.result-mark {
+  font-size: 1.1rem;
+  width: 24px;
+  text-align: center;
+}
+
+.result-correct .result-mark { color: var(--green); }
+.result-incorrect .result-mark { color: var(--vermillion); }
+
+.result-poem {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.result-number {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  min-width: 24px;
+}
+
+.result-text {
+  font-size: 0.85rem;
+}
+
+.results-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 0;
+}
+
+/* ============================================
+   Settings Page
+   ============================================ */
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.setting-info {
+  flex: 1;
+}
+
+.setting-name {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.setting-desc {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.setting-select {
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  min-height: 40px;
+}
+
+/* Toggle Switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-secondary);
+  border-radius: 28px;
+  border: 1px solid var(--border);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  left: 2px;
+  top: 2px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle input:checked + .toggle-slider {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(22px);
+  background: var(--bg-primary);
+}
+
+.btn-danger {
+  padding: 8px 16px;
+  background: rgba(233, 69, 96, 0.15);
+  border: 1px solid var(--vermillion);
+  border-radius: var(--radius-sm);
+  color: var(--vermillion);
+  font-size: 0.8rem;
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+.setting-item.danger {
+  border-bottom-color: rgba(233, 69, 96, 0.2);
+}
+
+.app-info {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.app-version {
+  margin-bottom: 4px;
+}
+
+/* ============================================
+   Utilities
+   ============================================ */
+
+.hidden {
+  display: none !important;
+}
+
+/* Smooth page transitions */
+#app {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
