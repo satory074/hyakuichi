@@ -507,12 +507,6 @@ input, select {
   font-weight: 700;
 }
 
-.kimariji-note {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-top: 12px;
-}
-
 /* Detail sections */
 .detail-kana {
   margin: 20px 0;

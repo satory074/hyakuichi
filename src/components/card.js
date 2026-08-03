@@ -64,6 +64,6 @@ function highlightKimariji(kana, kimariji, display, useKanji) {
     return result;
   }
 
-  // For kanji display, show kimariji as a subscript note
-  return `${display}<div class="kimariji-note">決まり字: <span class="kimariji">${kimariji}</span></div>`;
+  // 漢字表示では決まり字の注記を出さない（決まり字は詳細ページの上の句で色分け表示）
+  return display;
 }
