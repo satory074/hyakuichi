@@ -16,6 +16,8 @@ export function renderDetail(container, poems, params) {
   const status = getStatus(poem.id);
   const prevId = poem.id > 1 ? poem.id - 1 : 100;
   const nextId = poem.id < 100 ? poem.id + 1 : 1;
+  // 決まり字は上の句かなの接頭辞（全100首で検証済み）。色分け表示用に分割
+  const kimarijiRest = poem.kami.kana.slice(poem.kimariji.length);
 
   container.innerHTML = `
     <div class="page detail-page">
@@ -31,10 +33,22 @@ export function renderDetail(container, poems, params) {
 
       ${renderFlipCard(poem)}
 
+      <figure class="detail-efuda">
+        <img
+          class="efuda-img"
+          src="${import.meta.env.BASE_URL}efuda/${String(poem.id).padStart(3, '0')}.jpg"
+          alt="第${poem.id}番 ${poem.poet.kanji} 歌がるた絵札"
+          width="328"
+          height="458"
+          loading="lazy"
+        />
+        <figcaption class="efuda-credit">歌がるた絵札（江戸期・パブリックドメイン / Wikimedia Commons）</figcaption>
+      </figure>
+
       <div class="detail-kana">
         <div class="kana-row">
           <span class="kana-label">上の句</span>
-          <span class="kana-text">${poem.kami.kana}</span>
+          <span class="kana-text"><span class="kana-kimariji">${poem.kimariji}</span>${kimarijiRest}</span>
         </div>
         <div class="kana-row">
           <span class="kana-label">下の句</span>
@@ -42,10 +56,24 @@ export function renderDetail(container, poems, params) {
         </div>
       </div>
 
-      <div class="detail-kimariji">
-        <span class="kimariji-label">決まり字（${poem.kimarijiCount}字決まり）</span>
-        <span class="kimariji-value">${poem.kimariji}</span>
-      </div>
+      ${poem.yurai ? `
+      <div class="detail-yurai">
+        ${poem.yurai.poetBio ? `
+        <div class="yurai-block">
+          <span class="yurai-label">作者について</span>
+          <p class="yurai-text">${poem.yurai.poetBio}</p>
+        </div>` : ''}
+        ${poem.yurai.meaning ? `
+        <div class="yurai-block">
+          <span class="yurai-label">現代語訳</span>
+          <p class="yurai-text">${poem.yurai.meaning}</p>
+        </div>` : ''}
+        ${poem.yurai.background ? `
+        <div class="yurai-block">
+          <span class="yurai-label">由来・背景</span>
+          <p class="yurai-text">${poem.yurai.background}</p>
+        </div>` : ''}
+      </div>` : ''}
 
       <div class="status-control">
         <span class="status-label">学習状態:</span>

@@ -530,30 +530,61 @@ input, select {
   margin-bottom: 4px;
 }
 
+.kana-kimariji {
+  color: var(--vermillion);
+  font-weight: 700;
+}
+
 .kana-text {
   font-size: 0.9rem;
   line-height: 1.6;
 }
 
-.detail-kimariji {
+/* 絵札 */
+.detail-efuda {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.efuda-img {
+  width: 60%;
+  max-width: 240px;
+  height: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.efuda-credit {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* 由来（現代語訳・背景） */
+.detail-yurai {
   background: var(--bg-secondary);
   border-radius: var(--radius-sm);
-  padding: 12px;
-  text-align: center;
+  padding: 16px;
   margin: 16px 0;
 }
 
-.kimariji-label {
+.yurai-block + .yurai-block {
+  margin-top: 14px;
+}
+
+.yurai-label {
   display: block;
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--gold);
   margin-bottom: 6px;
 }
 
-.kimariji-value {
-  font-size: 1.3rem;
-  color: var(--vermillion);
-  font-weight: 700;
+.yurai-text {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--text-primary);
 }
 
 /* Status Control */

@@ -3,7 +3,14 @@
  */
 import './style.css';
 import poems from './data/poems.json';
+import yurai from './data/yurai.json';
 import { registerRoute, startRouter } from './utils/router.js';
+
+// Merge 由来（現代語訳・背景）into poems by id (yurai.json is hand/AI-maintained,
+// kept separate from the auto-generated poems.json). Unlisted poems get undefined.
+poems.forEach((p) => {
+  p.yurai = yurai[p.id];
+});
 import { renderNav } from './components/nav.js';
 import { renderHome } from './pages/home.js';
 import { renderBrowse } from './pages/browse.js';

@@ -31,6 +31,21 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,json,svg,ico,woff2}'],
+        // 絵札(JPEG, ~6MB)はプリキャッシュせず、閲覧時にオンデマンドでキャッシュ（初回インストールを軽く保つ）
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.includes('/efuda/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'efuda-images',
+              expiration: {
+                maxEntries: 110,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],
