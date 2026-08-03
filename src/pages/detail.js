@@ -1,8 +1,7 @@
 /**
- * Detail page: flip card, kimariji highlight, status change, prev/next nav
+ * Detail page: flip card, kimariji highlight, prev/next nav
  */
 import { renderFlipCard } from '../components/card.js';
-import { getStatus, setStatus } from '../utils/storage.js';
 
 export function renderDetail(container, poems, params) {
   const id = parseInt(params[0]);
@@ -13,7 +12,6 @@ export function renderDetail(container, poems, params) {
     return;
   }
 
-  const status = getStatus(poem.id);
   const prevId = poem.id > 1 ? poem.id - 1 : 100;
   const nextId = poem.id < 100 ? poem.id + 1 : 1;
   // 決まり字は上の句かなの接頭辞（全100首で検証済み）。色分け表示用に分割
@@ -75,28 +73,10 @@ export function renderDetail(container, poems, params) {
         </div>` : ''}
       </div>` : ''}
 
-      <div class="status-control">
-        <span class="status-label">学習状態:</span>
-        <div class="status-buttons">
-          <button class="status-btn ${status === 'new' ? 'active' : ''}" data-status="new">未学習</button>
-          <button class="status-btn ${status === 'learning' ? 'active' : ''}" data-status="learning">学習中</button>
-          <button class="status-btn ${status === 'mastered' ? 'active' : ''}" data-status="mastered">暗記済</button>
-        </div>
-      </div>
-
       <nav class="detail-nav">
         <a href="#detail/${prevId}" class="nav-prev">&larr; 第${prevId}番</a>
         <a href="#detail/${nextId}" class="nav-next">第${nextId}番 &rarr;</a>
       </nav>
     </div>
   `;
-
-  // Status change handlers
-  container.querySelectorAll('.status-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      setStatus(poem.id, btn.dataset.status);
-      container.querySelectorAll('.status-btn').forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
 }

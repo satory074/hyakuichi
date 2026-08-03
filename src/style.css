@@ -581,49 +581,6 @@ input, select {
   color: var(--text-primary);
 }
 
-/* Status Control */
-.status-control {
-  margin: 20px 0;
-}
-
-.status-label {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  display: block;
-  margin-bottom: 8px;
-}
-
-.status-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.status-btn {
-  flex: 1;
-  padding: 10px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  min-height: 48px;
-  transition: all 0.2s;
-}
-
-.status-btn.active {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-.status-btn[data-status="mastered"].active {
-  border-color: var(--green);
-  color: var(--green);
-}
-
-.status-btn[data-status="new"].active {
-  border-color: var(--text-muted);
-  color: var(--text-secondary);
-}
-
 /* Detail Nav */
 .detail-nav {
   display: flex;
