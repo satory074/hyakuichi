@@ -34,20 +34,20 @@ export function renderHome(container, poems) {
       <section class="mode-cards">
         <h2 class="section-title">学習モード</h2>
         <div class="mode-grid">
-          <a href="#quiz/kami-to-shimo" class="mode-card">
-            <span class="mode-icon">&#x2191;</span>
-            <span class="mode-name">上の句→下の句</span>
-            <span class="mode-desc">上の句から下の句を当てる</span>
+          <a href="#quiz/practice" class="mode-card">
+            <span class="mode-icon">&#x270D;</span>
+            <span class="mode-name">実践（札取り）</span>
+            <span class="mode-desc">上の句を聞いて札を取る</span>
           </a>
           <a href="#quiz/shimo-to-kami" class="mode-card">
             <span class="mode-icon">&#x2193;</span>
-            <span class="mode-name">下の句→上の句</span>
-            <span class="mode-desc">下の句から上の句を当てる</span>
+            <span class="mode-name">暗記：下の句→上の句</span>
+            <span class="mode-desc">下の句から上の句を思い出す</span>
           </a>
           <a href="#quiz/kimariji" class="mode-card">
             <span class="mode-icon">&#x2606;</span>
-            <span class="mode-name">決まり字</span>
-            <span class="mode-desc">決まり字から歌を当てる</span>
+            <span class="mode-name">暗記：決まり字</span>
+            <span class="mode-desc">決まり字から歌を思い出す</span>
           </a>
           <a href="#browse" class="mode-card">
             <span class="mode-icon">&#x1F4D6;</span>

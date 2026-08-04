@@ -642,44 +642,74 @@ input, select {
   line-height: 2;
 }
 
-/* Choices */
-.quiz-choices {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* 実践（札取り） */
+.quiz-practice .quiz-reading-fixed {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg-primary);
+  padding: 12px 0 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
-.choice-btn {
+.quiz-practice .quiz-progress {
+  margin-bottom: 12px;
+}
+
+.quiz-reading {
+  text-align: center;
+}
+
+.quiz-reading-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.15em;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.quiz-reading-text {
+  font-size: 1.5rem;
+  line-height: 1.8;
+  min-height: 2.7rem;
+  letter-spacing: 0.05em;
+}
+
+.quiz-board-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* 札（一覧の行をボタン化） */
+.quiz-board .poem-item {
   width: 100%;
-  padding: 14px 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  line-height: 1.6;
   text-align: left;
-  min-height: 48px;
-  transition: all 0.2s;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
 }
 
-.choice-btn:active {
-  border-color: var(--gold);
+.quiz-board .poem-item:active {
+  background: var(--bg-secondary);
 }
 
-.choice-btn.correct {
-  background: rgba(78, 204, 163, 0.15);
-  border-color: var(--green);
-  color: var(--green);
+.quiz-board .poem-item.correct {
+  background: rgba(78, 204, 163, 0.18);
 }
 
-.choice-btn.incorrect {
-  background: rgba(233, 69, 96, 0.15);
-  border-color: var(--vermillion);
-  color: var(--vermillion);
+.quiz-board .poem-item.incorrect {
+  background: rgba(233, 69, 96, 0.18);
 }
 
-.choice-btn:disabled {
-  opacity: 0.7;
+.quiz-board .poem-item:disabled {
+  cursor: default;
 }
 
 /* Recall Mode */

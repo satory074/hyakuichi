@@ -1,5 +1,9 @@
 /**
  * Quiz page: settings → questions → feedback → results
+ *
+ * 回答方式:
+ *  - 実践（札取り, PRACTICE): 上の句を1文字ずつ読み上げ、全100首の一覧から札を取る
+ *  - 暗記（自己判定, RECALL): 答えを見て自己判定
  */
 import {
   QUIZ_MODES,
@@ -14,21 +18,43 @@ import {
 import { getSettings, getStatus } from '../utils/storage.js';
 
 let session = null;
+let revealTimer = null;
 
-export function renderQuiz(container, poems, params) {
-  const modeParam = params[0];
-
-  if (modeParam && !session) {
-    renderSetup(container, poems, modeParam);
-  } else if (session) {
-    renderQuestion(container, poems);
-  } else {
-    renderSetup(container, poems, QUIZ_MODES.KAMI_TO_SHIMO);
+function clearRevealTimer() {
+  if (revealTimer) {
+    clearInterval(revealTimer);
+    revealTimer = null;
   }
 }
 
-function renderSetup(container, poems, mode) {
+export function renderQuiz(container, poems, params) {
+  const param = params[0];
+
+  if (session) {
+    renderQuestion(container, poems);
+    return;
+  }
+
+  // No active session → open setup, preselecting from the route param
+  if (param && Object.values(QUIZ_MODES).includes(param)) {
+    // 上の句→下の句 などの向きパラメータ → 暗記モードで preselect
+    renderSetup(container, poems, {
+      answerMode: ANSWER_MODES.RECALL,
+      mode: param,
+    });
+  } else {
+    // 'practice' または未指定 → 実践（既定）
+    renderSetup(container, poems, {
+      answerMode: ANSWER_MODES.PRACTICE,
+      mode: QUIZ_MODES.KAMI_TO_SHIMO,
+    });
+  }
+}
+
+function renderSetup(container, poems, preset) {
   const settings = getSettings();
+  const presetAnswer = preset.answerMode;
+  const presetMode = preset.mode;
 
   container.innerHTML = `
     <div class="page quiz-page">
@@ -38,36 +64,38 @@ function renderSetup(container, poems, mode) {
 
       <form class="quiz-setup">
         <div class="form-group">
-          <label>出題モード</label>
+          <label>回答方式</label>
           <div class="radio-group">
             <label class="radio-label">
-              <input type="radio" name="mode" value="${QUIZ_MODES.KAMI_TO_SHIMO}"
-                ${mode === QUIZ_MODES.KAMI_TO_SHIMO ? 'checked' : ''} />
-              上の句 → 下の句
+              <input type="radio" name="answerMode" value="${ANSWER_MODES.PRACTICE}"
+                ${presetAnswer === ANSWER_MODES.PRACTICE ? 'checked' : ''} />
+              実践（札取り）
             </label>
             <label class="radio-label">
-              <input type="radio" name="mode" value="${QUIZ_MODES.SHIMO_TO_KAMI}"
-                ${mode === QUIZ_MODES.SHIMO_TO_KAMI ? 'checked' : ''} />
-              下の句 → 上の句
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="mode" value="${QUIZ_MODES.KIMARIJI}"
-                ${mode === QUIZ_MODES.KIMARIJI ? 'checked' : ''} />
-              決まり字クイズ
+              <input type="radio" name="answerMode" value="${ANSWER_MODES.RECALL}"
+                ${presetAnswer === ANSWER_MODES.RECALL ? 'checked' : ''} />
+              暗記（自己判定）
             </label>
           </div>
         </div>
 
-        <div class="form-group">
-          <label>回答方式</label>
+        <div class="form-group" id="modeGroup">
+          <label>出題モード</label>
           <div class="radio-group">
             <label class="radio-label">
-              <input type="radio" name="answerMode" value="${ANSWER_MODES.CHOICE}" checked />
-              四択
+              <input type="radio" name="mode" value="${QUIZ_MODES.KAMI_TO_SHIMO}"
+                ${presetMode === QUIZ_MODES.KAMI_TO_SHIMO ? 'checked' : ''} />
+              上の句 → 下の句
             </label>
             <label class="radio-label">
-              <input type="radio" name="answerMode" value="${ANSWER_MODES.RECALL}" />
-              暗記（自己判定）
+              <input type="radio" name="mode" value="${QUIZ_MODES.SHIMO_TO_KAMI}"
+                ${presetMode === QUIZ_MODES.SHIMO_TO_KAMI ? 'checked' : ''} />
+              下の句 → 上の句
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="mode" value="${QUIZ_MODES.KIMARIJI}"
+                ${presetMode === QUIZ_MODES.KIMARIJI ? 'checked' : ''} />
+              決まり字クイズ
             </label>
           </div>
         </div>
@@ -118,6 +146,17 @@ function renderSetup(container, poems, mode) {
       </form>
     </div>
   `;
+
+  // 出題モードは暗記のときだけ表示（実践は上の句読み上げに固定）
+  const modeGroup = container.querySelector('#modeGroup');
+  const updateModeVisibility = () => {
+    const am = container.querySelector('input[name="answerMode"]:checked').value;
+    modeGroup.style.display = am === ANSWER_MODES.RECALL ? '' : 'none';
+  };
+  container.querySelectorAll('input[name="answerMode"]').forEach((r) => {
+    r.addEventListener('change', updateModeVisibility);
+  });
+  updateModeVisibility();
 
   // Count buttons
   let selectedCount = settings.quizCount;
@@ -172,18 +211,155 @@ function renderSetup(container, poems, mode) {
 }
 
 function renderQuestion(container, poems) {
+  clearRevealTimer();
+
   if (isSessionComplete(session)) {
     renderResults(container, poems);
     return;
   }
 
-  const q = getCurrentQuestion(session, poems);
+  const q = getCurrentQuestion(session);
+
+  if (session.answerMode === ANSWER_MODES.PRACTICE) {
+    renderPractice(container, poems, q);
+  } else {
+    renderRecallQuestion(container, poems, q);
+  }
+}
+
+/* ---------- 実践（札取り） ---------- */
+
+function renderPractice(container, poems, q) {
+  const settings = getSettings();
+  const useKanji = settings.showKanji;
+
+  container.innerHTML = `
+    <div class="page quiz-page quiz-practice">
+      <div class="quiz-reading-fixed">
+        <div class="quiz-progress">
+          <span>${q.index + 1} / ${q.total}</span>
+          <div class="quiz-progress-bar">
+            <div class="quiz-progress-fill" style="width:${(q.index / q.total) * 100}%"></div>
+          </div>
+        </div>
+        <div class="quiz-reading">
+          <span class="quiz-reading-label">読み上げ（上の句）</span>
+          <div class="quiz-reading-text" id="readingText"></div>
+        </div>
+      </div>
+
+      <p class="quiz-board-hint">正しい札を取ってください</p>
+      <ul class="poem-list quiz-board">
+        ${poems
+          .map((p) => {
+            const status = getStatus(p.id);
+            const kami = useKanji ? p.kami.kanji : p.kami.kana;
+            return `
+              <li>
+                <button type="button" class="poem-item status-${status}" data-id="${p.id}">
+                  <span class="poem-number">${p.id}</span>
+                  <div class="poem-text">
+                    <span class="poem-kami">${kami}</span>
+                    <span class="poem-poet">${p.poet.kanji}</span>
+                  </div>
+                  <span class="poem-status-dot"></span>
+                </button>
+              </li>
+            `;
+          })
+          .join('')}
+      </ul>
+    </div>
+  `;
+
+  // 新しい読み上げのたびに場（一覧）を先頭に戻す
+  window.scrollTo(0, 0);
+
+  startReading(container, q.poem);
+  attachPracticeHandlers(container, poems, q);
+}
+
+/**
+ * 上の句のかなを1文字ずつ表示。決まり字部分は朱色で色付け。
+ */
+function readingHTML(kana, n, kimarijiLen) {
+  const shown = kana.slice(0, n);
+  if (kimarijiLen <= 0) return shown;
+  const colored = Math.min(n, kimarijiLen);
+  const head = shown.slice(0, colored);
+  const tail = shown.slice(colored);
+  return `<span class="kana-kimariji">${head}</span>${tail}`;
+}
+
+function startReading(container, poem) {
+  clearRevealTimer();
+  const el = container.querySelector('#readingText');
+  if (!el) return;
+
+  const kana = poem.kami.kana;
+  const kimarijiLen = poem.kimariji.length;
+  let n = 0;
+
+  const reveal = () => {
+    n++;
+    // 空白は次の1字とまとめて表示（空白だけの1コマを作らない）
+    if (kana[n - 1] === ' ' && n < kana.length) n++;
+    el.innerHTML = readingHTML(kana, n, kimarijiLen);
+    if (n >= kana.length) clearRevealTimer();
+  };
+
+  reveal(); // 最初の1字はすぐ表示
+  if (n < kana.length) {
+    revealTimer = setInterval(reveal, 400);
+  }
+}
+
+function attachPracticeHandlers(container, poems, q) {
+  container.querySelectorAll('.poem-item[data-id]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      clearRevealTimer();
+
+      // 回答時に読み上げを全部表示
+      const el = container.querySelector('#readingText');
+      if (el) {
+        el.innerHTML = readingHTML(
+          q.poem.kami.kana,
+          q.poem.kami.kana.length,
+          q.poem.kimariji.length
+        );
+      }
+
+      const selectedId = parseInt(btn.dataset.id);
+      const result = submitAnswer(session, selectedId);
+
+      // フィードバック: 正解=緑、お手つき=赤＋正解を緑
+      btn.classList.add(result.correct ? 'correct' : 'incorrect');
+      const correctBtn = container.querySelector(`.poem-item[data-id="${q.poem.id}"]`);
+      if (!result.correct) {
+        correctBtn?.classList.add('correct');
+        correctBtn?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+
+      // 全札を無効化
+      container.querySelectorAll('.poem-item[data-id]').forEach((b) => {
+        b.disabled = true;
+      });
+
+      // 次の句へ
+      setTimeout(() => renderQuestion(container, poems), result.correct ? 700 : 1200);
+    });
+  });
+}
+
+/* ---------- 暗記（自己判定） ---------- */
+
+function renderRecallQuestion(container, poems, q) {
   const settings = getSettings();
   const useKanji = settings.showKanji;
 
   let questionText = '';
   let questionLabel = '';
-
   if (session.mode === QUIZ_MODES.KAMI_TO_SHIMO) {
     questionLabel = '上の句';
     questionText = useKanji ? q.poem.kami.kanji : q.poem.kami.kana;
@@ -200,7 +376,7 @@ function renderQuestion(container, poems) {
       <div class="quiz-progress">
         <span>${q.index + 1} / ${q.total}</span>
         <div class="quiz-progress-bar">
-          <div class="quiz-progress-fill" style="width:${((q.index) / q.total) * 100}%"></div>
+          <div class="quiz-progress-fill" style="width:${(q.index / q.total) * 100}%"></div>
         </div>
       </div>
 
@@ -209,41 +385,14 @@ function renderQuestion(container, poems) {
         <div class="quiz-text">${questionText}</div>
       </div>
 
-      ${session.answerMode === ANSWER_MODES.CHOICE
-        ? renderChoices(q, poems, container)
-        : renderRecall(q, poems, container)}
+      ${renderRecall(q)}
     </div>
   `;
 
-  attachQuizHandlers(container, poems, q);
+  attachRecallHandlers(container, poems);
 }
 
-function renderChoices(q, poems) {
-  const settings = getSettings();
-  const useKanji = settings.showKanji;
-
-  return `
-    <div class="quiz-choices">
-      ${q.choices
-        .map((choice) => {
-          let answerText = '';
-          if (session.mode === QUIZ_MODES.KAMI_TO_SHIMO) {
-            answerText = useKanji ? choice.shimo.kanji : choice.shimo.kana;
-          } else if (session.mode === QUIZ_MODES.SHIMO_TO_KAMI) {
-            answerText = useKanji ? choice.kami.kanji : choice.kami.kana;
-          } else {
-            answerText = useKanji
-              ? `${choice.kami.kanji} / ${choice.shimo.kanji}`
-              : `${choice.kami.kana} / ${choice.shimo.kana}`;
-          }
-          return `<button class="choice-btn" data-id="${choice.id}">${answerText}</button>`;
-        })
-        .join('')}
-    </div>
-  `;
-}
-
-function renderRecall(q, poems) {
+function renderRecall(q) {
   const settings = getSettings();
   const useKanji = settings.showKanji;
 
@@ -273,48 +422,27 @@ function renderRecall(q, poems) {
   `;
 }
 
-function attachQuizHandlers(container, poems, q) {
-  if (session.answerMode === ANSWER_MODES.CHOICE) {
-    container.querySelectorAll('.choice-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const selectedId = parseInt(btn.dataset.id);
-        const result = submitAnswer(session, selectedId);
+function attachRecallHandlers(container, poems) {
+  const revealBtn = container.querySelector('#revealBtn');
+  const answer = container.querySelector('#recallAnswer');
 
-        // Show feedback
-        btn.classList.add(result.correct ? 'correct' : 'incorrect');
-        if (!result.correct) {
-          container.querySelector(`[data-id="${q.poem.id}"]`)?.classList.add('correct');
-        }
-
-        // Disable all buttons
-        container.querySelectorAll('.choice-btn').forEach((b) => {
-          b.disabled = true;
-        });
-
-        // Next question after delay
-        setTimeout(() => renderQuestion(container, poems), result.correct ? 600 : 1500);
-      });
-    });
-  } else {
-    const revealBtn = container.querySelector('#revealBtn');
-    const answer = container.querySelector('#recallAnswer');
-
-    if (revealBtn) {
-      revealBtn.addEventListener('click', () => {
-        revealBtn.classList.add('hidden');
-        answer.classList.remove('hidden');
-      });
-    }
-
-    container.querySelectorAll('[data-knew]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const knew = btn.dataset.knew === 'true';
-        submitRecall(session, knew);
-        renderQuestion(container, poems);
-      });
+  if (revealBtn) {
+    revealBtn.addEventListener('click', () => {
+      revealBtn.classList.add('hidden');
+      answer.classList.remove('hidden');
     });
   }
+
+  container.querySelectorAll('[data-knew]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const knew = btn.dataset.knew === 'true';
+      submitRecall(session, knew);
+      renderQuestion(container, poems);
+    });
+  });
 }
+
+/* ---------- 結果 ---------- */
 
 function renderResults(container, poems) {
   const results = getResults(session);
@@ -376,5 +504,6 @@ function renderResults(container, poems) {
 }
 
 export function cleanupQuiz() {
+  clearRevealTimer();
   session = null;
 }

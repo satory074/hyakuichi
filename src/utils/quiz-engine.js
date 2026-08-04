@@ -13,7 +13,7 @@ export const QUIZ_MODES = {
 };
 
 export const ANSWER_MODES = {
-  CHOICE: 'choice',       // 四択
+  PRACTICE: 'practice',   // 実践（札取り）
   RECALL: 'recall',       // 暗記（自己判定）
 };
 
@@ -40,25 +40,6 @@ export function selectQuestions(poems, count, range = null) {
 }
 
 /**
- * Generate 3 distractors for a given poem
- * Prefers poems with the same kimarijiCount
- */
-export function generateDistractors(poem, allPoems, mode) {
-  const others = allPoems.filter((p) => p.id !== poem.id);
-
-  // Prefer same kimarijiCount
-  const sameKimariji = others.filter(
-    (p) => p.kimarijiCount === poem.kimarijiCount
-  );
-  const rest = others.filter(
-    (p) => p.kimarijiCount !== poem.kimarijiCount
-  );
-
-  const pool = shuffle([...sameKimariji, ...rest]);
-  return pool.slice(0, 3);
-}
-
-/**
  * Create a quiz session
  */
 export function createSession(poems, options) {
@@ -76,19 +57,14 @@ export function createSession(poems, options) {
 }
 
 /**
- * Get the current question with choices
+ * Get the current question
+ * (実践モードは場札＝全100首なので選択肢は生成しない)
  */
-export function getCurrentQuestion(session, allPoems) {
+export function getCurrentQuestion(session) {
   const poem = session.questions[session.current];
   if (!poem) return null;
 
-  let choices = null;
-  if (session.answerMode === ANSWER_MODES.CHOICE) {
-    const distractors = generateDistractors(poem, allPoems, session.mode);
-    choices = shuffle([poem, ...distractors]);
-  }
-
-  return { poem, choices, index: session.current, total: session.questions.length };
+  return { poem, index: session.current, total: session.questions.length };
 }
 
 /**
