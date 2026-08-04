@@ -16,6 +16,7 @@ import {
   isSessionComplete,
 } from '../utils/quiz-engine.js';
 import { getSettings, getStatus } from '../utils/storage.js';
+import { renderPoemExplanation } from '../components/card.js';
 
 let session = null;
 let revealTimer = null;
@@ -333,21 +334,19 @@ function attachPracticeHandlers(container, poems, q) {
       const selectedId = parseInt(btn.dataset.id);
       const result = submitAnswer(session, selectedId);
 
-      // フィードバック: 正解=緑、お手つき=赤＋正解を緑
-      btn.classList.add(result.correct ? 'correct' : 'incorrect');
-      const correctBtn = container.querySelector(`.poem-item[data-id="${q.poem.id}"]`);
-      if (!result.correct) {
-        correctBtn?.classList.add('correct');
-        correctBtn?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      }
-
       // 全札を無効化
       container.querySelectorAll('.poem-item[data-id]').forEach((b) => {
         b.disabled = true;
       });
 
-      // 次の句へ
-      setTimeout(() => renderQuestion(container, poems), result.correct ? 700 : 1200);
+      if (result.correct) {
+        // 正解: 緑にフラッシュして自動で次へ
+        btn.classList.add('correct');
+        setTimeout(() => renderQuestion(container, poems), 700);
+      } else {
+        // お手つき: 解説を表示（「次へ」で進む）
+        renderExplanation(container, poems, q.poem);
+      }
     });
   });
 }
@@ -389,7 +388,7 @@ function renderRecallQuestion(container, poems, q) {
     </div>
   `;
 
-  attachRecallHandlers(container, poems);
+  attachRecallHandlers(container, poems, q.poem);
 }
 
 function renderRecall(q) {
@@ -422,7 +421,7 @@ function renderRecall(q) {
   `;
 }
 
-function attachRecallHandlers(container, poems) {
+function attachRecallHandlers(container, poems, poem) {
   const revealBtn = container.querySelector('#revealBtn');
   const answer = container.querySelector('#recallAnswer');
 
@@ -437,8 +436,43 @@ function attachRecallHandlers(container, poems) {
     btn.addEventListener('click', () => {
       const knew = btn.dataset.knew === 'true';
       submitRecall(session, knew);
-      renderQuestion(container, poems);
+      if (knew) {
+        renderQuestion(container, poems);
+      } else {
+        // 忘れていた: 解説を表示（「次へ」で進む）
+        renderExplanation(container, poems, poem);
+      }
     });
+  });
+}
+
+/* ---------- 解説（誤答時） ---------- */
+
+function renderExplanation(container, poems, poem) {
+  clearRevealTimer();
+  window.scrollTo(0, 0);
+
+  container.innerHTML = `
+    <div class="page quiz-page quiz-explanation">
+      <header class="page-header">
+        <h1>解説</h1>
+      </header>
+
+      <div class="explanation-result">正解は 第${poem.id}番</div>
+
+      <div class="poet-info">
+        <span class="poet-name">${poem.poet.kanji}</span>
+        <span class="poet-kana">${poem.poet.kana}</span>
+      </div>
+
+      ${renderPoemExplanation(poem)}
+
+      <button class="btn-primary btn-start" id="nextBtn">次へ</button>
+    </div>
+  `;
+
+  container.querySelector('#nextBtn')?.addEventListener('click', () => {
+    renderQuestion(container, poems);
   });
 }
 

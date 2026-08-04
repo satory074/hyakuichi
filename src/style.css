@@ -712,6 +712,20 @@ input, select {
   cursor: default;
 }
 
+/* 解説（誤答時） */
+.explanation-result {
+  text-align: center;
+  color: var(--vermillion);
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+
+.quiz-explanation #nextBtn {
+  width: 100%;
+  margin-top: 20px;
+}
+
 /* Recall Mode */
 .recall-section {
   text-align: center;
