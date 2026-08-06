@@ -2,6 +2,7 @@
  * Detail page: flip card, kimariji highlight, prev/next nav
  */
 import { renderFlipCard, renderPoemExplanation } from '../components/card.js';
+import { attachSpeakHandlers, stopSpeech } from '../utils/speech.js';
 
 export function renderDetail(container, poems, params) {
   const id = parseInt(params[0]);
@@ -37,4 +38,9 @@ export function renderDetail(container, poems, params) {
       </nav>
     </div>
   `;
+
+  attachSpeakHandlers(container);
+
+  // 前後ナビ・ページ離脱時に読み上げを止める
+  return () => stopSpeech();
 }

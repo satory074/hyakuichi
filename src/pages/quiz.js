@@ -16,7 +16,8 @@ import {
   isSessionComplete,
 } from '../utils/quiz-engine.js';
 import { getSettings, getStatus } from '../utils/storage.js';
-import { renderPoemExplanation } from '../components/card.js';
+import { renderPoemExplanation, speakButton } from '../components/card.js';
+import { speak, stopSpeech, unlock, attachSpeakHandlers } from '../utils/speech.js';
 
 let session = null;
 let revealTimer = null;
@@ -186,6 +187,9 @@ function renderSetup(container, poems, preset) {
       for (let i = start; i <= end; i++) range.push(i);
     }
 
+    // 開始タップ（ユーザージェスチャ）内で音声をアンロック → 以後の自動読み上げが許可される
+    unlock();
+
     session = createSession(poems, {
       mode: quizMode,
       answerMode,
@@ -213,6 +217,7 @@ function renderSetup(container, poems, preset) {
 
 function renderQuestion(container, poems) {
   clearRevealTimer();
+  stopSpeech();
 
   if (isSessionComplete(session)) {
     renderResults(container, poems);
@@ -276,6 +281,9 @@ function renderPractice(container, poems, q) {
   // 新しい読み上げのたびに場（一覧）を先頭に戻す
   window.scrollTo(0, 0);
 
+  // 読み手: 上の句を音声で読み上げ（文字送りとは独立に再生）
+  speak(q.poem.kami.kana);
+
   startReading(container, q.poem);
   attachPracticeHandlers(container, poems, q);
 }
@@ -320,6 +328,7 @@ function attachPracticeHandlers(container, poems, q) {
     btn.addEventListener('click', () => {
       if (btn.disabled) return;
       clearRevealTimer();
+      stopSpeech();
 
       // 回答時に読み上げを全部表示
       const el = container.querySelector('#readingText');
@@ -359,12 +368,15 @@ function renderRecallQuestion(container, poems, q) {
 
   let questionText = '';
   let questionLabel = '';
+  let questionSpeech = ''; // 決まり字モードは短すぎて読み上げが不自然なのでボタンなし
   if (session.mode === QUIZ_MODES.KAMI_TO_SHIMO) {
     questionLabel = '上の句';
     questionText = useKanji ? q.poem.kami.kanji : q.poem.kami.kana;
+    questionSpeech = q.poem.kami.kana;
   } else if (session.mode === QUIZ_MODES.SHIMO_TO_KAMI) {
     questionLabel = '下の句';
     questionText = useKanji ? q.poem.shimo.kanji : q.poem.shimo.kana;
+    questionSpeech = q.poem.shimo.kana;
   } else {
     questionLabel = '決まり字';
     questionText = q.poem.kimariji;
@@ -382,6 +394,7 @@ function renderRecallQuestion(container, poems, q) {
       <div class="quiz-question">
         <span class="quiz-label">${questionLabel}</span>
         <div class="quiz-text">${questionText}</div>
+        ${questionSpeech ? speakButton(questionSpeech, questionLabel) : ''}
       </div>
 
       ${renderRecall(q)}
@@ -389,6 +402,7 @@ function renderRecallQuestion(container, poems, q) {
   `;
 
   attachRecallHandlers(container, poems, q.poem);
+  attachSpeakHandlers(container);
 }
 
 function renderRecall(q) {
@@ -396,14 +410,19 @@ function renderRecall(q) {
   const useKanji = settings.showKanji;
 
   let answerText = '';
+  let answerSpeech = '';
   if (session.mode === QUIZ_MODES.KAMI_TO_SHIMO) {
     answerText = useKanji ? q.poem.shimo.kanji : q.poem.shimo.kana;
+    answerSpeech = q.poem.shimo.kana;
   } else if (session.mode === QUIZ_MODES.SHIMO_TO_KAMI) {
     answerText = useKanji ? q.poem.kami.kanji : q.poem.kami.kana;
+    answerSpeech = q.poem.kami.kana;
   } else {
     answerText = useKanji
       ? `${q.poem.kami.kanji} / ${q.poem.shimo.kanji}`
       : `${q.poem.kami.kana} / ${q.poem.shimo.kana}`;
+    // 決まり字モードの答えは一首通しで読む
+    answerSpeech = `${q.poem.kami.kana} ${q.poem.shimo.kana}`;
   }
 
   return `
@@ -411,6 +430,7 @@ function renderRecall(q) {
       <button class="btn-reveal" id="revealBtn">答えを見る</button>
       <div class="recall-answer hidden" id="recallAnswer">
         <div class="recall-text">${answerText}</div>
+        ${speakButton(answerSpeech, '答え')}
         <div class="recall-poet">${q.poem.poet.kanji}</div>
         <div class="recall-buttons">
           <button class="btn-knew" data-knew="true">覚えていた</button>
@@ -450,6 +470,7 @@ function attachRecallHandlers(container, poems, poem) {
 
 function renderExplanation(container, poems, poem) {
   clearRevealTimer();
+  stopSpeech();
   window.scrollTo(0, 0);
 
   container.innerHTML = `
@@ -474,6 +495,7 @@ function renderExplanation(container, poems, poem) {
   container.querySelector('#nextBtn')?.addEventListener('click', () => {
     renderQuestion(container, poems);
   });
+  attachSpeakHandlers(container);
 }
 
 /* ---------- 結果 ---------- */
@@ -539,5 +561,6 @@ function renderResults(container, poems) {
 
 export function cleanupQuiz() {
   clearRevealTimer();
+  stopSpeech();
   session = null;
 }

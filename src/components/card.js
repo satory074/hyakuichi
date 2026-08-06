@@ -3,6 +3,18 @@
  * Shows kami-no-ku on front, shimo-no-ku on back
  */
 import { getSettings } from '../utils/storage.js';
+import { isSpeechOn } from '../utils/speech.js';
+
+/**
+ * 読み上げボタンのHTML（設定OFF・非対応ブラウザでは空文字）。
+ * ハンドラは呼び出し側が attachSpeakHandlers(container) でバインドする。
+ * @param {string} text - 読み上げるかな（ひらがな＋半角スペースのみ想定）
+ * @param {string} label - aria-label 用の対象名（例: 上の句）
+ */
+export function speakButton(text, label) {
+  if (!isSpeechOn()) return '';
+  return `<button type="button" class="speak-btn" data-speak="${text}" aria-label="${label}を読み上げ">&#x1F50A;</button>`;
+}
 
 /**
  * Render a flip card for a poem
@@ -71,10 +83,12 @@ export function renderPoemExplanation(poem) {
       <div class="kana-row">
         <span class="kana-label">上の句</span>
         <span class="kana-text"><span class="kana-kimariji">${poem.kimariji}</span>${kimarijiRest}</span>
+        ${speakButton(poem.kami.kana, '上の句')}
       </div>
       <div class="kana-row">
         <span class="kana-label">下の句</span>
         <span class="kana-text">${poem.shimo.kana}</span>
+        ${speakButton(poem.shimo.kana, '下の句')}
       </div>
     </div>
 

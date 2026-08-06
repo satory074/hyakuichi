@@ -5,6 +5,7 @@ import './style.css';
 import poems from './data/poems.json';
 import yurai from './data/yurai.json';
 import { registerRoute, startRouter } from './utils/router.js';
+import { initSpeech } from './utils/speech.js';
 
 // Merge 由来（現代語訳・背景）into poems by id (yurai.json is hand/AI-maintained,
 // kept separate from the auto-generated poems.json). Unlisted poems get undefined.
@@ -27,9 +28,7 @@ registerRoute('browse', (container) => {
   renderBrowse(container, poems);
 });
 
-registerRoute('detail', (container, params) => {
-  renderDetail(container, poems, params);
-});
+registerRoute('detail', (container, params) => renderDetail(container, poems, params));
 
 registerRoute('quiz', (container, params) => {
   renderQuiz(container, poems, params);
@@ -44,6 +43,9 @@ registerRoute('settings', (container) => {
 const navEl = document.getElementById('bottom-nav');
 renderNav(navEl);
 window.addEventListener('hashchange', () => renderNav(navEl));
+
+// Init speech synthesis (voice list loading)
+initSpeech();
 
 // Start router
 startRouter();

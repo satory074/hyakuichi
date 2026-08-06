@@ -12,6 +12,8 @@ const SETTINGS_KEY = 'hyakuichi_settings';
 const DEFAULT_SETTINGS = {
   quizCount: 10,
   showKanji: true,
+  speechEnabled: true,
+  speechRate: 1.0,
 };
 
 // --- Progress ---

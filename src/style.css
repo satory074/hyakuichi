@@ -1124,3 +1124,43 @@ input, select {
   background: var(--border);
   border-radius: 2px;
 }
+
+/* ============ 読み上げ ============ */
+.speak-btn {
+  padding: 6px 10px;
+  min-width: 44px;
+  min-height: 36px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.speak-btn:active {
+  opacity: 0.7;
+}
+
+/* かな行: ボタンを右端に縦中央配置 */
+.kana-row {
+  position: relative;
+  padding-right: 56px;
+}
+
+.kana-row .speak-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 暗記モード */
+.quiz-question .speak-btn {
+  margin-top: 12px;
+}
+
+.recall-answer .speak-btn {
+  margin: 4px 0 12px;
+}
