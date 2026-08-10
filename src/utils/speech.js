@@ -45,7 +45,11 @@ export function initSpeech() {
  */
 export function unlock() {
   if (!isSupported() || unlocked) return;
-  const u = new SpeechSynthesisUtterance(' '); // 空文字はエラーになるブラウザがある
+  // 空文字・空白のみの utterance は Chrome の speechSynthesis を
+  // ブラウザ再起動まで無音のまま壊すことがある (crbug.com/41346274) ため、
+  // 実テキストを volume 0 で発話する
+  const u = new SpeechSynthesisUtterance('あ');
+  u.lang = 'ja-JP';
   u.volume = 0;
   window.speechSynthesis.speak(u);
   unlocked = true;
