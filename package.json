@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "prepare-data": "node scripts/prepare-data.js",
+    "generate-audio": "node scripts/generate-audio.js",
     "deploy": "npm run build && firebase deploy"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@
  * Settings page: quiz count, kanji toggle, data reset
  */
 import { getSettings, updateSettings, resetAllProgress, resetSettings } from '../utils/storage.js';
-import { isSupported, speak, stopSpeech } from '../utils/speech.js';
+import { speakSample, stopSpeech } from '../utils/speech.js';
 
 const SPEECH_RATES = [
   { value: 0.7, label: 'ゆっくり' },
@@ -13,7 +13,6 @@ const SPEECH_RATES = [
 
 export function renderSettings(container) {
   const settings = getSettings();
-  const speechSupported = isSupported();
 
   container.innerHTML = `
     <div class="page settings-page">
@@ -50,15 +49,10 @@ export function renderSettings(container) {
         <div class="setting-item">
           <div class="setting-info">
             <span class="setting-name">読み上げ</span>
-            <span class="setting-desc">${
-              speechSupported
-                ? 'クイズと詳細ページで歌を音声で読み上げます'
-                : 'このブラウザは音声合成に対応していません'
-            }</span>
+            <span class="setting-desc">クイズと詳細ページで歌を音声で読み上げます</span>
           </div>
           <label class="toggle">
-            <input type="checkbox" id="speechEnabled"
-              ${settings.speechEnabled ? 'checked' : ''} ${speechSupported ? '' : 'disabled'} />
+            <input type="checkbox" id="speechEnabled" ${settings.speechEnabled ? 'checked' : ''} />
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -68,7 +62,7 @@ export function renderSettings(container) {
             <span class="setting-name">読み上げ速度</span>
             <span class="setting-desc">変更すると試し読みします</span>
           </div>
-          <select class="setting-select" id="speechRate" ${speechSupported ? '' : 'disabled'}>
+          <select class="setting-select" id="speechRate">
             ${SPEECH_RATES.map(
               (r) =>
                 `<option value="${r.value}" ${settings.speechRate === r.value ? 'selected' : ''}>${r.label}</option>`
@@ -116,7 +110,7 @@ export function renderSettings(container) {
 
   container.querySelector('#speechRate').addEventListener('change', (e) => {
     updateSettings({ speechRate: parseFloat(e.target.value) });
-    speak('なにわづに さくやこのはな ふゆごもり'); // 試し読み（序歌）
+    speakSample(); // 試し読み（第1番上の句）
   });
 
   container.querySelector('#resetProgress').addEventListener('click', () => {

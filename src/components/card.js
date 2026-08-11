@@ -6,14 +6,20 @@ import { getSettings } from '../utils/storage.js';
 import { isSpeechOn } from '../utils/speech.js';
 
 /**
- * 読み上げボタンのHTML（設定OFF・非対応ブラウザでは空文字）。
+ * 読み上げボタンのHTML（設定OFFでは空文字）。
  * ハンドラは呼び出し側が attachSpeakHandlers(container) でバインドする。
- * @param {string} text - 読み上げるかな（ひらがな＋半角スペースのみ想定）
+ * data-audio: 再生するクリップID列（スペース区切り）、data-speak: TTSフォールバック用かな。
+ * どちらもひらがな・英数字・ハイフン・スペースのみで引用符を含まないため属性エスケープ不要。
+ * @param {Object} poem
+ * @param {'kami'|'shimo'|'full'} part - full は一首通し（上の句→下の句の連結再生）
  * @param {string} label - aria-label 用の対象名（例: 上の句）
  */
-export function speakButton(text, label) {
+export function speakButton(poem, part, label) {
   if (!isSpeechOn()) return '';
-  return `<button type="button" class="speak-btn" data-speak="${text}" aria-label="${label}を読み上げ">&#x1F50A;</button>`;
+  const pad = String(poem.id).padStart(3, '0');
+  const clips = part === 'full' ? `${pad}-kami ${pad}-shimo` : `${pad}-${part}`;
+  const fallback = part === 'full' ? `${poem.kami.kana} ${poem.shimo.kana}` : poem[part].kana;
+  return `<button type="button" class="speak-btn" data-audio="${clips}" data-speak="${fallback}" aria-label="${label}を読み上げ">&#x1F50A;</button>`;
 }
 
 /**
@@ -83,12 +89,12 @@ export function renderPoemExplanation(poem) {
       <div class="kana-row">
         <span class="kana-label">上の句</span>
         <span class="kana-text"><span class="kana-kimariji">${poem.kimariji}</span>${kimarijiRest}</span>
-        ${speakButton(poem.kami.kana, '上の句')}
+        ${speakButton(poem, 'kami', '上の句')}
       </div>
       <div class="kana-row">
         <span class="kana-label">下の句</span>
         <span class="kana-text">${poem.shimo.kana}</span>
-        ${speakButton(poem.shimo.kana, '下の句')}
+        ${speakButton(poem, 'shimo', '下の句')}
       </div>
     </div>
 
