@@ -17,7 +17,7 @@ import {
 } from '../utils/quiz-engine.js';
 import { getSettings, getStatus } from '../utils/storage.js';
 import { renderPoemExplanation, speakButton } from '../components/card.js';
-import { speakPoem, stopSpeech, unlock, attachSpeakHandlers } from '../utils/speech.js';
+import { speakReading, stopSpeech, unlock, attachSpeakHandlers, isSpeechOn } from '../utils/speech.js';
 
 let session = null;
 let revealTimer = null;
@@ -238,6 +238,10 @@ function renderQuestion(container, poems) {
 function renderPractice(container, poems, q) {
   const settings = getSettings();
   const useKanji = settings.showKanji;
+  const speechOn = isSpeechOn();
+  // 公式の読みサイクル: 1問目は序歌、2問目以降は前の札の下の句を先に読む
+  const intro = q.index === 0 ? 'joka' : session.questions[q.index - 1];
+  const waitLabel = q.index === 0 ? '序歌「難波津に」' : '（前の札の下の句）';
 
   container.innerHTML = `
     <div class="page quiz-page quiz-practice">
@@ -250,7 +254,9 @@ function renderPractice(container, poems, q) {
         </div>
         <div class="quiz-reading">
           <span class="quiz-reading-label">読み上げ（上の句）</span>
-          <div class="quiz-reading-text" id="readingText"></div>
+          <div class="quiz-reading-text" id="readingText">${
+            speechOn ? `<span class="quiz-reading-wait">${waitLabel}</span>` : ''
+          }</div>
         </div>
       </div>
 
@@ -281,10 +287,12 @@ function renderPractice(container, poems, q) {
   // 新しい読み上げのたびに場（一覧）を先頭に戻す
   window.scrollTo(0, 0);
 
-  // 読み手: 上の句を音声で読み上げ（文字送りとは独立に再生）
-  speakPoem(q.poem, 'kami');
-
-  startReading(container, q.poem);
+  // 読み手: 公式サイクルで読み上げ。文字送りは出札上の句の音声開始に同期
+  if (speechOn) {
+    speakReading(q.poem, { intro, onKamiStart: () => startReading(container, q.poem) });
+  } else {
+    startReading(container, q.poem); // 音声OFF: 従来どおり即・文字送りのみ
+  }
   attachPracticeHandlers(container, poems, q);
 }
 

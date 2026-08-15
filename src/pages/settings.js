@@ -90,6 +90,7 @@ export function renderSettings(container) {
       <div class="app-info">
         <p class="app-version">百一 v1.0.0</p>
         <p class="app-credit">小倉百人一首 暗記アプリ</p>
+        <p class="app-credit">読み上げ音声: VOICEVOX:雀松朱司</p>
       </div>
     </div>
   `;

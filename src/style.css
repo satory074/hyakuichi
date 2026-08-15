@@ -1164,3 +1164,9 @@ input, select {
 .recall-answer .speak-btn {
   margin: 4px 0 12px;
 }
+
+/* 実践モード: 前の札の下の句・序歌の再生待ち表示 */
+.quiz-reading-wait {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}

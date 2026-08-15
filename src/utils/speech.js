@@ -22,6 +22,13 @@ import { getSettings } from './storage.js';
 // --- 音声ファイル再生（第一経路） ---
 let audioEl = null; // 単一共有 HTMLAudioElement（自動再生アンロックの要）
 let playToken = 0; // 連結再生の世代トークン。stopSpeech で無効化する
+let gapTimer = null; // クリップ間の静寂用 setTimeout（stopAudio で解除）
+
+// --- 公式読みサイクルの間（ms）。静寂は音声に焼き込まずアプリ側タイマーで作る ---
+// 公式は 5-3-1-6 方式（下の句→余韻3秒→間合い1秒→上の句）＝静寂系4秒。
+// クリップ末尾に約1秒の長音（ーー）が焼き込まれているため 3000ms を既定とする。
+const PRACTICE_GAP_MS = 3000; // 前札下の句（または序歌下の句）→ 出札上の句
+const KAMI_SHIMO_GAP_MS = 1000; // 上の句 → 下の句（序歌・一首通しの答え）
 
 // --- Web Speech API（フォールバック） ---
 let jaVoice = null;
@@ -39,7 +46,7 @@ export function isSpeechOn() {
 }
 
 function clipUrl(clipId) {
-  return `${import.meta.env.BASE_URL}audio/${clipId}.mp3`;
+  return `${import.meta.env.BASE_URL}audio/${clipId}.m4a`;
 }
 
 function getAudioEl() {
@@ -52,6 +59,10 @@ function getAudioEl() {
 
 function stopAudio() {
   playToken++;
+  if (gapTimer) {
+    clearTimeout(gapTimer);
+    gapTimer = null;
+  }
   if (audioEl) {
     audioEl.pause();
     audioEl.currentTime = 0;
@@ -61,43 +72,94 @@ function stopAudio() {
 }
 
 /**
- * クリップ列を順に再生（KIMARIJI の一首通し = kami → ended → shimo の連結）。
+ * クリップ列を順に再生する。
+ * opts.gaps[k]: クリップ k と k+1 の間の静寂ms（省略時 0＝連続）
+ * opts.onClipStart(clipId, idx): 各クリップの再生開始時（play() 成功時）に呼ぶ
+ * opts.onFallback(): TTSフォールバックに落ちる直前に呼ぶ
  * 再生できない場合（未キャッシュのオフライン・404等）は TTS フォールバック。
- * 縮退系: 連結2個目で失敗した場合、フォールバックは一首全体を頭から読む（稀なので許容）。
+ * 縮退系: 2個目以降で失敗した場合、フォールバックは全体を頭から読む（稀なので許容）。
+ * 注: setTimeout / then / catch の全非同期経路に playToken ガード必須
+ * （次問への遷移後に古いコールバックが新しい画面を触るのを防ぐ）。
  */
-function playSequence(clipIds, fallbackText) {
+function playSequence(clipIds, fallbackText, opts = {}) {
   if (!isSpeechOn()) return;
   stopSpeech();
   const token = ++playToken;
   const a = getAudioEl();
+  const gaps = opts.gaps || [];
   let i = 0;
   const fail = () => {
-    if (token === playToken) speakText(fallbackText);
+    if (token !== playToken) return;
+    opts.onFallback?.();
+    speakText(fallbackText);
   };
-  const playNext = () => {
+  const playClip = () => {
     if (token !== playToken || i >= clipIds.length) return;
+    const clipId = clipIds[i];
+    const idx = i;
+    i++;
     a.muted = false; // unlock のミュートが残っていても必ず解除
-    a.src = clipUrl(clipIds[i++]);
+    a.src = clipUrl(clipId);
     const rate = getSettings().speechRate;
     a.defaultPlaybackRate = rate; // src 変更で playbackRate が default に戻るブラウザ対策
     a.playbackRate = rate;
-    a.play().catch(fail);
+    a.play()
+      .then(() => {
+        if (token === playToken) opts.onClipStart?.(clipId, idx);
+      })
+      .catch(fail);
+  };
+  const playNext = () => {
+    if (token !== playToken || i >= clipIds.length) return;
+    const gap = gaps[i - 1] || 0;
+    if (gap > 0) {
+      gapTimer = setTimeout(() => {
+        gapTimer = null;
+        if (token === playToken) playClip();
+      }, gap);
+    } else {
+      playClip();
+    }
   };
   a.onended = playNext;
   a.onerror = fail;
-  playNext();
+  playClip();
 }
 
 /**
- * 歌の読み上げ。part: 'kami' | 'shimo' | 'full'（一首通し）
+ * 実践モード（札取り）の公式読みサイクル。
+ *  intro === 'joka' : 序歌上の句 →1秒→ 序歌下の句 →3秒→ 出札上の句（1問目）
+ *  intro が歌       : 前札下の句 →3秒→ 出札上の句（2問目以降）
+ *  intro なし       : 出札上の句のみ
+ * onKamiStart は出札上の句の再生開始時に一度だけ呼ぶ（文字送りの同期用）。
+ * フォールバック時はサイクルを省略して出札上の句のみTTSで読み、その時点で呼ぶ。
  */
-export function speakPoem(poem, part) {
+export function speakReading(poem, { intro = null, onKamiStart } = {}) {
   const pad = String(poem.id).padStart(3, '0');
-  if (part === 'full') {
-    playSequence([`${pad}-kami`, `${pad}-shimo`], `${poem.kami.kana} ${poem.shimo.kana}`);
-  } else {
-    playSequence([`${pad}-${part}`], poem[part].kana);
+  const kami = `${pad}-kami`;
+  let clips = [kami];
+  let gaps = [];
+  if (intro === 'joka') {
+    clips = ['joka-kami', 'joka-shimo', kami];
+    gaps = [KAMI_SHIMO_GAP_MS, PRACTICE_GAP_MS];
+  } else if (intro) {
+    clips = [`${String(intro.id).padStart(3, '0')}-shimo`, kami];
+    gaps = [PRACTICE_GAP_MS];
   }
+  let started = false;
+  const startOnce = () => {
+    if (!started) {
+      started = true;
+      onKamiStart?.();
+    }
+  };
+  playSequence(clips, poem.kami.kana, {
+    gaps,
+    onClipStart: (id) => {
+      if (id === kami) startOnce();
+    },
+    onFallback: startOnce,
+  });
 }
 
 /** 設定ページの試し読み（第1番上の句） */
@@ -224,6 +286,12 @@ export function stopSpeech() {
  */
 export function attachSpeakHandlers(container) {
   container.querySelectorAll('.speak-btn[data-audio]').forEach((btn) => {
-    btn.addEventListener('click', () => playSequence(btn.dataset.audio.split(' '), btn.dataset.speak));
+    btn.addEventListener('click', () => {
+      const clips = btn.dataset.audio.split(' ');
+      playSequence(clips, btn.dataset.speak, {
+        // 一首通し（上の句→下の句）は句間に間を置く。単クリップは即時
+        gaps: clips.length > 1 ? Array(clips.length - 1).fill(KAMI_SHIMO_GAP_MS) : [],
+      });
+    });
   });
 }
