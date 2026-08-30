@@ -45,7 +45,7 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
-          // 朗読音声(MP3, ~7MB)も再生時にオンデマンドでキャッシュ。
+          // 朗読音声(VOICEVOX生成m4a, ~10MB)も再生時にオンデマンドでキャッシュ。
           // 音声を再生成・差し替えした場合は cacheName を 'poem-audio-v3' に上げること（1年キャッシュのため）
           {
             urlPattern: ({ url }) => url.pathname.includes('/audio/'),

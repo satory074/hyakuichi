@@ -1,6 +1,7 @@
 /**
- * 読み上げ: 事前生成MP3（Google Cloud TTS, public/audio/）の再生を第一経路とし、
- * 取得失敗時（オフライン初回など）は Web Speech API (speechSynthesis) にフォールバックする。
+ * 読み上げ: 事前生成m4a（VOICEVOX, public/audio/）の再生を第一経路とし、
+ * 取得失敗・再生スタック時（オフライン初回・Chromeのメディア詰まり等）は
+ * Web Speech API (speechSynthesis) にフォールバックする。
  *
  * 設計の要:
  *  - 単一の共有 Audio 要素を再利用する。ユーザージェスチャ内で一度 play() した要素は
@@ -23,6 +24,15 @@ import { getSettings } from './storage.js';
 let audioEl = null; // 単一共有 HTMLAudioElement（自動再生アンロックの要）
 let playToken = 0; // 連結再生の世代トークン。stopSpeech で無効化する
 let gapTimer = null; // クリップ間の静寂用 setTimeout（stopAudio で解除）
+let stallTimer = null; // 再生スタック検知の watchdog（stopAudio で解除）
+
+// Chrome はメディアパイプラインがプロセス全体で詰まり、play() が resolve も reject も
+// しないまま readyState=0 で固まることがある（crbug.com/41346274 系、復旧はブラウザ再起動）。
+// この間 currentTime が進まなければ失敗とみなして TTS フォールバックに落とす。
+const STALL_MS = 5000;
+// speechSynthesis も同様に speak() が受理され speaking=true でも start が発火しない
+// 詰まり方をするため、start 不発ならユーザーへ再起動のヒントを出す。
+const TTS_START_TIMEOUT_MS = 4000;
 
 // --- 公式読みサイクルの間（ms）。静寂は音声に焼き込まずアプリ側タイマーで作る ---
 // 公式は 5-3-1-6 方式（下の句→余韻3秒→間合い1秒→上の句）＝静寂系4秒。
@@ -57,8 +67,16 @@ function getAudioEl() {
   return audioEl;
 }
 
+function clearStallTimer() {
+  if (stallTimer) {
+    clearTimeout(stallTimer);
+    stallTimer = null;
+  }
+}
+
 function stopAudio() {
   playToken++;
+  clearStallTimer();
   if (gapTimer) {
     clearTimeout(gapTimer);
     gapTimer = null;
@@ -88,10 +106,14 @@ function playSequence(clipIds, fallbackText, opts = {}) {
   const a = getAudioEl();
   const gaps = opts.gaps || [];
   let i = 0;
+  let failed = false; // watchdog と onerror の二重発火でフォールバックを重ねない
   const fail = () => {
-    if (token !== playToken) return;
+    if (failed || token !== playToken) return;
+    failed = true;
+    clearStallTimer();
     opts.onFallback?.();
-    speakText(fallbackText);
+    if (isSupported()) speakText(fallbackText);
+    else showAudioHint(); // TTS も無い環境では無言で終わらせずヒントだけ出す
   };
   const playClip = () => {
     if (token !== playToken || i >= clipIds.length) return;
@@ -108,6 +130,17 @@ function playSequence(clipIds, fallbackText, opts = {}) {
         if (token === playToken) opts.onClipStart?.(clipId, idx);
       })
       .catch(fail);
+    // 再生スタック watchdog: play() が永久保留になっても currentTime で判定できる。
+    // クリップ末尾〜gap 中の発火は currentTime === duration(≠0) なので誤検知しない。
+    clearStallTimer();
+    stallTimer = setTimeout(() => {
+      stallTimer = null;
+      if (token !== playToken) return;
+      if (a.currentTime === 0) {
+        a.pause();
+        fail();
+      }
+    }, STALL_MS);
   };
   const playNext = () => {
     if (token !== playToken || i >= clipIds.length) return;
@@ -225,6 +258,20 @@ function clearKeepAlive() {
   }
 }
 
+let audioHintShown = false;
+
+/** 音声再生もTTSも動かないとき、セッション中一度だけ復旧ヒントのトーストを出す */
+function showAudioHint() {
+  if (audioHintShown) return;
+  audioHintShown = true;
+  const el = document.createElement('div');
+  el.className = 'audio-toast';
+  el.setAttribute('role', 'status');
+  el.textContent = '音声を再生できません。ブラウザを完全に終了して再起動すると直ることがあります';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 8000);
+}
+
 /**
  * TTS フォールバック: かなテキストを speechSynthesis で読み上げる。
  * @param {string} text - ひらがな（文節は半角スペース区切り）
@@ -243,6 +290,10 @@ function speakText(text) {
   if (jaVoice) u.voice = jaVoice;
   u.rate = getSettings().speechRate;
   currentUtterance = u;
+  let ttsStarted = false;
+  u.onstart = () => {
+    ttsStarted = true;
+  };
   u.onend = () => {
     clearKeepAlive();
     if (currentUtterance === u) currentUtterance = null;
@@ -259,6 +310,11 @@ function speakText(text) {
   synth.speak(u);
   // Chrome: speak 後に内部が paused 状態へ入り無音になることがある → resume で発話を促す
   synth.resume();
+  // start 不発の詰まり検知（詰まり中も speaking=true になるため start イベントで判定する）。
+  // onend/onerror/stopSpeech/次の発話で currentUtterance が入れ替わっていたら何もしない。
+  setTimeout(() => {
+    if (!ttsStarted && currentUtterance === u) showAudioHint();
+  }, TTS_START_TIMEOUT_MS);
   // 長文の 15 秒打ち切り対策の keepalive。短いクリップでは発火前に onend で解除される。
   keepAliveTimer = setInterval(() => {
     if (!synth.speaking) {

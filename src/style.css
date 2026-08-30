@@ -1170,3 +1170,22 @@ input, select {
   color: var(--text-muted);
   font-size: 0.95rem;
 }
+
+/* 音声が出せないときの復旧ヒント（speech.js showAudioHint） */
+.audio-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--nav-height) + var(--safe-bottom) + 16px);
+  transform: translateX(-50%);
+  z-index: 200;
+  max-width: min(90vw, 420px);
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  animation: fadeIn 0.3s ease;
+}
