@@ -74,9 +74,35 @@ function clearStallTimer() {
   }
 }
 
+// --- 自動再生ブロック時の再試行（詳細ページの自動読み上げ用） ---
+// URLを直接開いた場合はジェスチャが無く play() が NotAllowedError になる。
+// 最初のクリック/キー操作（=アクティベーション獲得）で一度だけ再生し直す。
+let gestureRetryHandler = null;
+
+function cancelGestureRetry() {
+  if (gestureRetryHandler) {
+    document.removeEventListener('click', gestureRetryHandler, true);
+    document.removeEventListener('keydown', gestureRetryHandler, true);
+    gestureRetryHandler = null;
+  }
+}
+
+function retryOnFirstGesture(fn) {
+  cancelGestureRetry();
+  const handler = () => {
+    cancelGestureRetry();
+    fn();
+  };
+  gestureRetryHandler = handler;
+  // capture: ボタンや遷移のハンドラより先に発火させ、後続の再生指示があれば上書きさせる
+  document.addEventListener('click', handler, true);
+  document.addEventListener('keydown', handler, true);
+}
+
 function stopAudio() {
   playToken++;
   clearStallTimer();
+  cancelGestureRetry();
   if (gapTimer) {
     clearTimeout(gapTimer);
     gapTimer = null;
@@ -94,6 +120,8 @@ function stopAudio() {
  * opts.gaps[k]: クリップ k と k+1 の間の静寂ms（省略時 0＝連続）
  * opts.onClipStart(clipId, idx): 各クリップの再生開始時（play() 成功時）に呼ぶ
  * opts.onFallback(): TTSフォールバックに落ちる直前に呼ぶ
+ * opts.auto: ユーザージェスチャ外からの自動再生。NotAllowedError（自動再生ブロック）は
+ *   TTSも同様にブロックされるためフォールバックせず、最初の操作で再試行する
  * 再生できない場合（未キャッシュのオフライン・404等）は TTS フォールバック。
  * 縮退系: 2個目以降で失敗した場合、フォールバックは全体を頭から読む（稀なので許容）。
  * 注: setTimeout / then / catch の全非同期経路に playToken ガード必須
@@ -129,7 +157,20 @@ function playSequence(clipIds, fallbackText, opts = {}) {
       .then(() => {
         if (token === playToken) opts.onClipStart?.(clipId, idx);
       })
-      .catch(fail);
+      .catch((e) => {
+        if (opts.auto && e && e.name === 'NotAllowedError') {
+          if (token !== playToken) return;
+          clearStallTimer();
+          retryOnFirstGesture(() => {
+            if (token === playToken) {
+              i = idx; // 失敗したクリップから読み直す
+              playClip();
+            }
+          });
+          return;
+        }
+        fail();
+      });
     // 再生スタック watchdog: play() が永久保留になっても currentTime で判定できる。
     // クリップ末尾〜gap 中の発火は currentTime === duration(≠0) なので誤検知しない。
     clearStallTimer();
@@ -167,7 +208,7 @@ function playSequence(clipIds, fallbackText, opts = {}) {
  * onKamiStart は出札上の句の再生開始時に一度だけ呼ぶ（文字送りの同期用）。
  * フォールバック時はサイクルを省略して出札上の句のみTTSで読み、その時点で呼ぶ。
  */
-export function speakReading(poem, { intro = null, onKamiStart } = {}) {
+export function speakReading(poem, { intro = null, onKamiStart, auto = false } = {}) {
   const pad = String(poem.id).padStart(3, '0');
   const kami = `${pad}-kami`;
   let clips = [kami];
@@ -188,6 +229,7 @@ export function speakReading(poem, { intro = null, onKamiStart } = {}) {
   };
   playSequence(clips, poem.kami.kana, {
     gaps,
+    auto,
     onClipStart: (id) => {
       if (id === kami) startOnce();
     },
