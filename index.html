@@ -6,6 +6,21 @@
   <meta name="theme-color" content="#1a1a2e" />
   <meta name="description" content="百人一首を効率的に暗記するアプリ" />
   <title>百一 - 百人一首暗記</title>
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta property="og:url" content="https://satory074.github.io/hyakuichi/" />
+  <meta property="og:site_name" content="百一" />
+  <meta property="og:title" content="百一 — 小倉百人一首 暗記アプリ" />
+  <meta property="og:description" content="競技かるた形式の札取りクイズと読み上げで、小倉百人一首 100 首を暗記する PWA" />
+  <meta property="og:image" content="https://satory074.github.io/hyakuichi/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:alt" content="百一 — 小倉百人一首 暗記アプリ" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="百一 — 小倉百人一首 暗記アプリ" />
+  <meta name="twitter:description" content="競技かるた形式の札取りクイズと読み上げで、小倉百人一首 100 首を暗記する PWA" />
+  <meta name="twitter:image" content="https://satory074.github.io/hyakuichi/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet" />
@@ -14,6 +29,13 @@
 </head>
 <body>
   <div id="app"></div>
+  <!-- サイト間ナビ: アプリ一覧へ戻る逆リンクバー（→ satory074.com/apps）。
+       正準仕様: basecamp/docs/app-backlink.md -->
+  <nav class="app-backlink-bar" aria-label="サイト間ナビゲーション">
+    <a href="https://satory074.com/apps/" target="_blank" rel="noopener"
+       aria-label="satory074 のほかのアプリ一覧を新しいタブで開く"
+       >satory074 のほかのアプリ <span aria-hidden="true">↗</span></a>
+  </nav>
   <nav id="bottom-nav"></nav>
   <script type="module" src="/src/main.js"></script>
 </body>

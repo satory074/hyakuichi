@@ -18,6 +18,7 @@
   --radius: 12px;
   --radius-sm: 8px;
   --nav-height: 64px;
+  --backlink-height: 36px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
@@ -30,6 +31,8 @@
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
+  /* ページ内アンカー遷移時に固定バー/ナビが飛び先を隠さないように */
+  scroll-padding-bottom: calc(var(--nav-height) + var(--backlink-height) + var(--safe-bottom) + 8px);
 }
 
 body {
@@ -63,7 +66,7 @@ input, select {
    ============================================ */
 
 #app {
-  padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 8px);
+  padding-bottom: calc(var(--nav-height) + var(--backlink-height) + var(--safe-bottom) + 8px);
   min-height: 100dvh;
 }
 
@@ -125,6 +128,46 @@ input, select {
 .nav-label {
   font-size: 0.65rem;
   letter-spacing: 0.05em;
+}
+
+/* ============================================
+   サイト間ナビ（逆リンクバー → satory074.com/apps）
+   正準仕様: basecamp/docs/app-backlink.md。
+   百一は自前の固定ボトムナビがあるため bottom: 0 ではなくナビの真上に段積みする
+   （safe-area は下の #bottom-nav が吸収済みなので、ここでは足さない）
+   ============================================ */
+
+.app-backlink-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: calc(var(--nav-height) + var(--safe-bottom));
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--backlink-height);
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--bg-secondary) 90%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.app-backlink-bar a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  /* ヒット領域を WCAG 2.5.8 の 24px 以上に拡大（負マージンで見た目の高さは不変） */
+  padding: 8px 14px;
+  margin: -8px 0;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.12s ease;
+}
+
+.app-backlink-bar a:hover {
+  color: var(--gold);
 }
 
 /* ============================================
@@ -1148,7 +1191,7 @@ input, select {
 .audio-toast {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--nav-height) + var(--safe-bottom) + 16px);
+  bottom: calc(var(--nav-height) + var(--backlink-height) + var(--safe-bottom) + 16px);
   transform: translateX(-50%);
   z-index: 200;
   max-width: min(90vw, 420px);
