@@ -444,69 +444,6 @@ input, select {
   margin-top: 2px;
 }
 
-/* Flip Card */
-.flip-card {
-  perspective: 1000px;
-  cursor: pointer;
-  margin: 16px 0;
-}
-
-.flip-card-inner {
-  position: relative;
-  width: 100%;
-  min-height: 200px;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
-}
-
-.flip-card.flipped .flip-card-inner {
-  transform: rotateY(180deg);
-}
-
-.flip-card-front,
-.flip-card-back {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.flip-card-back {
-  transform: rotateY(180deg);
-}
-
-.card-label {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  letter-spacing: 0.15em;
-  margin-bottom: 12px;
-}
-
-.card-poem {
-  font-size: 1.3rem;
-  line-height: 2;
-  color: var(--text-primary);
-}
-
-.card-hint {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  margin-top: 16px;
-}
-
-.kimariji {
-  color: var(--vermillion);
-  font-weight: 700;
-}
-
 /* Detail sections */
 .detail-kana {
   margin: 20px 0;
@@ -529,9 +466,19 @@ input, select {
   font-weight: 700;
 }
 
+/* 漢字かな交じり（主）＋かな（従）の2段表示 */
+.kana-kanji {
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
 .kana-text {
-  font-size: 0.9rem;
+  display: block;
+  font-size: 0.8rem;
   line-height: 1.6;
+  color: var(--text-secondary);
 }
 
 /* 絵札 */
@@ -1154,6 +1101,32 @@ input, select {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
+}
+
+/* 下の句マスク（詳細ページのみ）: display:none にせず高さを保ちレイアウトシフトを防ぐ */
+.kana-row.is-masked > *:not(.kana-mask) {
+  visibility: hidden;
+}
+
+.kana-mask {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.kana-row:not(.is-masked) .kana-mask {
+  display: none;
 }
 
 /* 暗記モード */

@@ -1,7 +1,7 @@
 /**
- * Detail page: flip card, kimariji highlight, prev/next nav
+ * Detail page: 上の句 → 下の句（タップで表示）→ 由来 → 絵札、prev/next nav
  */
-import { renderFlipCard, renderPoemExplanation } from '../components/card.js';
+import { renderPoemExplanation } from '../components/card.js';
 import { attachSpeakHandlers, speakReading, stopSpeech } from '../utils/speech.js';
 
 export function renderDetail(container, poems, params) {
@@ -28,9 +28,7 @@ export function renderDetail(container, poems, params) {
         <span class="poet-kana">${poem.poet.kana}</span>
       </div>
 
-      ${renderFlipCard(poem)}
-
-      ${renderPoemExplanation(poem)}
+      ${renderPoemExplanation(poem, { maskShimo: true })}
 
       <nav class="detail-nav">
         <a href="#detail/${prevId}" class="nav-prev">&larr; 第${prevId}番</a>
@@ -40,6 +38,11 @@ export function renderDetail(container, poems, params) {
   `;
 
   attachSpeakHandlers(container);
+
+  // 下の句マスク: タップで解除（ページ遷移で再レンダリングされ再びマスクされる）
+  container.querySelector('.kana-mask')?.addEventListener('click', (e) => {
+    e.currentTarget.closest('.kana-row').classList.remove('is-masked');
+  });
 
   // ページを開いたら上の句を自動再生。
   // URLを直接開いた場合はブロックされる（auto: 最初の操作で再試行）
