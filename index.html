@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#1a1a2e" />
-  <meta name="description" content="百人一首を効率的に暗記するアプリ" />
-  <title>百一 - 百人一首暗記</title>
+  <meta name="description" content="小倉百人一首 100 首を、競技かるた形式の札取りクイズと読み上げで暗記するアプリ。覚えた歌は端末に記録。全首の歌・かな・決まり字・現代語訳と解説も読めます。" />
+  <title>百一 — 小倉百人一首 暗記アプリ</title>
+  <link rel="canonical" href="https://satory074.github.io/hyakuichi/" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="ja_JP" />
   <meta property="og:url" content="https://satory074.github.io/hyakuichi/" />
@@ -26,9 +27,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://satory074.github.io/hyakuichi/#website","name":"百一","alternateName":"百一 — 小倉百人一首 暗記アプリ","url":"https://satory074.github.io/hyakuichi/","description":"小倉百人一首 100 首を、競技かるた形式の札取りクイズと読み上げで暗記するアプリ。全首の歌・かな・決まり字・現代語訳と解説も読めます。","inLanguage":"ja","author":{"@type":"Person","@id":"https://satory074.com/#person","name":"satory074","url":"https://satory074.com/"}}</script>
 </head>
 <body>
-  <div id="app"></div>
+  <!-- JS を実行しない読み手（検索・AI クローラー）向けの紹介。アプリは起動時に router が #app を空にして描き直すので二重には出ない -->
+  <div id="app">
+    <div class="page home-page">
+      <header class="page-header">
+        <h1 class="app-title">百一</h1>
+        <p class="app-subtitle">百人一首暗記</p>
+      </header>
+      <p class="static-lead">小倉百人一首の 100 首を覚えるためのアプリです。上の句の読み上げを聞いて全 100 枚から札を取る「実践（札取り）」と、上の句→下の句・下の句→上の句・決まり字から歌を思い出す「暗記」のクイズがあります。覚えた歌・学習中の歌はこの端末に記録され、学習中の歌から優先して出題されます。</p>
+      <p class="static-lead"><a href="/hyakuichi/poems/">百首の一覧</a>では、全 100 首の歌、かな、決まり字、現代語訳、由来・背景、作者についての解説を読めます。</p>
+    </div>
+  </div>
   <!-- サイト間ナビ: アプリ一覧へ戻る逆リンクバー（→ satory074.com/apps）。
        正準仕様: basecamp/docs/app-backlink.md -->
   <nav class="app-backlink-bar" aria-label="サイト間ナビゲーション">

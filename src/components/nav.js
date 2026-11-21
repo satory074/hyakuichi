@@ -1,8 +1,9 @@
 /**
  * Fixed bottom navigation (4 tabs: Home, Browse, Quiz, Settings)
+ * TABS は静的ページ（scripts/build-static-pages.js）も同じナビを書き出すのに使う
  */
 
-const TABS = [
+export const TABS = [
   { href: '#home', label: 'ホーム', icon: '&#x2302;' },
   { href: '#browse', label: '一覧', icon: '&#x1F4DC;' },
   { href: '#quiz', label: 'クイズ', icon: '&#x270D;' },

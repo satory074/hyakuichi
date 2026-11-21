@@ -2,6 +2,7 @@
  * Poem rendering helpers shared by the detail page and the quiz explanation
  */
 import { isSpeechOn } from '../utils/speech.js';
+import { poemExplanationHtml } from './poem-html.js';
 
 /**
  * 読み上げボタンのHTML（設定OFFでは空文字）。
@@ -24,64 +25,17 @@ export function speakButton(poem, part, label) {
  * Render the poem body: 上の句 → 下の句 → 由来 → 絵札。
  * Shared by the detail page and the quiz's wrong-answer screen.
  * Excludes the header, poet-info, and prev/next nav — caller wraps this as needed.
- * 上下句はどちらも漢字かな交じり（主）＋かな（従、上の句は決まり字を色分け）の2段表示。
+ * 本体の HTML は poem-html.js（静的ページ /poems/{id}/ の書き出しと共用）。ここでは
+ * アプリだけが持つもの（BASE_URL と読み上げボタン）を渡すだけにして、両者がずれないようにする。
  * @param {Object} poem
  * @param {Object} options - { maskShimo: boolean } 下の句をタップするまで隠す（詳細ページのみ）
  * @returns {string} HTML string
  */
 export function renderPoemExplanation(poem, options = {}) {
-  // 誤答解説では答えを隠さないので既定は false。詳細ページだけ true を渡す
-  const maskShimo = options.maskShimo === true;
-
-  // 決まり字は上の句かなの接頭辞（全100首で検証済み）。色分け表示用に分割
-  const kimarijiRest = poem.kami.kana.slice(poem.kimariji.length);
-
-  return `
-    <div class="detail-kana">
-      <div class="kana-row">
-        <span class="kana-label">上の句</span>
-        <span class="kana-kanji">${poem.kami.kanji}</span>
-        <span class="kana-text"><span class="kana-kimariji">${poem.kimariji}</span>${kimarijiRest}</span>
-        ${speakButton(poem, 'kami', '上の句')}
-      </div>
-      <div class="kana-row kana-row-shimo${maskShimo ? ' is-masked' : ''}">
-        <span class="kana-label">下の句</span>
-        <span class="kana-kanji">${poem.shimo.kanji}</span>
-        <span class="kana-text">${poem.shimo.kana}</span>
-        ${speakButton(poem, 'shimo', '下の句')}
-        ${maskShimo ? '<button type="button" class="kana-mask" aria-label="下の句を表示">タップして下の句を表示</button>' : ''}
-      </div>
-    </div>
-
-    ${poem.yurai ? `
-    <div class="detail-yurai">
-      ${poem.yurai.meaning ? `
-      <div class="yurai-block">
-        <span class="yurai-label">現代語訳</span>
-        <p class="yurai-text">${poem.yurai.meaning}</p>
-      </div>` : ''}
-      ${poem.yurai.background ? `
-      <div class="yurai-block">
-        <span class="yurai-label">由来・背景</span>
-        <p class="yurai-text">${poem.yurai.background}</p>
-      </div>` : ''}
-      ${poem.yurai.poetBio ? `
-      <div class="yurai-block">
-        <span class="yurai-label">作者について</span>
-        <p class="yurai-text">${poem.yurai.poetBio}</p>
-      </div>` : ''}
-    </div>` : ''}
-
-    <figure class="detail-efuda">
-      <img
-        class="efuda-img"
-        src="${import.meta.env.BASE_URL}efuda/${String(poem.id).padStart(3, '0')}.jpg"
-        alt="第${poem.id}番 ${poem.poet.kanji} 歌がるた絵札"
-        width="328"
-        height="458"
-        loading="lazy"
-      />
-      <figcaption class="efuda-credit">歌がるた絵札（江戸期・パブリックドメイン / Wikimedia Commons）</figcaption>
-    </figure>
-  `;
+  return poemExplanationHtml(poem, {
+    base: import.meta.env.BASE_URL,
+    // 誤答解説では答えを隠さないので既定は false。詳細ページだけ true を渡す
+    maskShimo: options.maskShimo === true,
+    speakButton,
+  });
 }

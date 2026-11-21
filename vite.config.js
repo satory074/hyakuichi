@@ -31,6 +31,12 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,json,svg,ico,woff2}'],
+        // 静的ページ /poems/ と /poems/{id}/（scripts/build-static-pages.js が vite build の後に書き出す）:
+        // - 既定の NavigationRoute は全遷移に index.html（アプリの殻）を返すので、/poems/ だけ外してネットワークから本物の HTML を読む
+        //   （sitemap.xml もブラウザで開くとアプリが出てしまうので外す）
+        // - プリキャッシュにも入れない（101 ページ分を初回インストールに足さない。今は SW 生成の後に書き出すので元々入らないが、順番が変わっても入らないように）
+        navigateFallbackDenylist: [/\/poems\//, /\/sitemap\.xml$/],
+        globIgnores: ['**/node_modules/**/*', 'poems/**'],
         // 絵札(JPEG, ~6MB)はプリキャッシュせず、閲覧時にオンデマンドでキャッシュ（初回インストールを軽く保つ）
         runtimeCaching: [
           {

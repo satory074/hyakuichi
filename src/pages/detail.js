@@ -2,6 +2,7 @@
  * Detail page: 上の句 → 下の句（タップで表示）→ 由来 → 絵札、prev/next nav
  */
 import { renderPoemExplanation } from '../components/card.js';
+import { poetInfoHtml } from '../components/poem-html.js';
 import { attachSpeakHandlers, speakReading, stopSpeech } from '../utils/speech.js';
 
 export function renderDetail(container, poems, params) {
@@ -23,10 +24,7 @@ export function renderDetail(container, poems, params) {
         <h1>第${poem.id}番</h1>
       </header>
 
-      <div class="poet-info">
-        <span class="poet-name">${poem.poet.kanji}</span>
-        <span class="poet-kana">${poem.poet.kana}</span>
-      </div>
+      ${poetInfoHtml(poem)}
 
       ${renderPoemExplanation(poem, { maskShimo: true })}
 

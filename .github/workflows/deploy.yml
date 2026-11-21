@@ -26,6 +26,8 @@ jobs:
       - uses: actions/configure-pages@v5
       - run: npm ci
       - run: npm run build
+      # 検索・AI クローラー向けの不変条件（固有の title・canonical・サイトマップ・JSON-LD の作者・戻りリンクのバー・サイト内リンク）。破ったら deploy しない
+      - run: node scripts/seo-check.mjs dist https://satory074.github.io/hyakuichi/ --require-backlink
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
