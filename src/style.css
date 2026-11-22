@@ -1205,3 +1205,70 @@ input, select {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   animation: fadeIn 0.3s ease;
 }
+
+/* ============================================
+   静的ページ（/poems/ と /poems/{id}/。scripts/build-static-pages.js が書き出す）
+   アプリの JS を読まないページだけで使う部品
+   ============================================ */
+
+.static-lead {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.static-lead a {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.static-section {
+  margin: 20px 0;
+}
+
+.static-counts {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.static-counts strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.static-kimariji {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.static-app-links {
+  display: grid;
+  gap: 10px;
+  margin: 24px 0 8px;
+}
+
+.static-app-links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* 一覧は省略せず全文を折り返して出す（アプリの一覧は 1 行で省略） */
+.static-list .poem-kami {
+  white-space: normal;
+}
+
+.poem-shimo {
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}

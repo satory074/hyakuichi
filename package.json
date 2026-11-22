@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/build-static-pages.js",
+    "seo-check": "node scripts/seo-check.mjs dist https://satory074.github.io/hyakuichi/ --require-backlink",
     "preview": "vite preview",
     "prepare-data": "node scripts/prepare-data.js",
     "generate-audio": "node scripts/generate-audio.js",
